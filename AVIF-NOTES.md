@@ -10,4 +10,4 @@ Windows scope: update all three Explorer filters (package manifest, IExplorerCom
 
 macOS scope: existing JPEG/PNG/WebP behavior remains covered by existing tests. AVIF packaging and Finder registration are Windows-only in this change; the decoder reports a clear missing-binary error on unbundled platforms. No macOS AVIF support claim is made.
 
-Build on Windows with Visual Studio C++ and CMake: run `tools/build_avif.ps1`, build the Flutter app, then run `tools/bundle_avif.ps1`. Runtime DLLs are supplied by the existing MozJPEG bundling step. CI builds and tests the helper and packaged decoder on `feature/avif-support`.
+Build on Windows with Visual Studio C++, CMake, and NASM on PATH: run `tools/build_avif.ps1`, build the Flutter app, then run `tools/bundle_avif.ps1`. Runtime DLLs are supplied by the existing MozJPEG bundling step. CI installs NASM 2.16.03 and builds and tests the helper and packaged decoder on `feature/avif-support`.
