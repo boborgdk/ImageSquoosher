@@ -25,7 +25,7 @@ int main() {
        L" " + std::to_wstring(GetTickCount64()));
   std::filesystem::create_directory(directory);
   const auto first = directory / L"日本語 空白.png";
-  const auto second = directory / L"second.webp";
+  const auto second = directory / L"second.AVIF";
   const auto unsupported = directory / L"unsupported.txt";
   std::ofstream(first).put('a');
   std::ofstream(second).put('b');

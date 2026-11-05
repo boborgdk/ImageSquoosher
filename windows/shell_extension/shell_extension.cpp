@@ -24,6 +24,7 @@ constexpr const wchar_t* kSupportedExtensions[] = {
     L".jpeg",
     L".png",
     L".webp",
+    L".avif",
 };
 
 HMODULE g_shell_module = nullptr;

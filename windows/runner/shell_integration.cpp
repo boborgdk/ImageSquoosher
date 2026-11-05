@@ -11,7 +11,7 @@
 
 namespace shell_integration {
 namespace {
-constexpr const wchar_t* kExtensions[] = {L".jpg", L".jpeg", L".png", L".webp"};
+constexpr const wchar_t* kExtensions[] = {L".jpg", L".jpeg", L".png", L".webp", L".avif"};
 
 /// 現在の実行ファイルの絶対パスを取得する。
 /// @returns 取得したパス (取得失敗時は空)

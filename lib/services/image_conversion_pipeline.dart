@@ -11,9 +11,10 @@ import '../utils/lanczos_resizer.dart';
 import 'image_metadata.dart';
 import 'image_mozjpeg_encoder.dart';
 import 'image_pipeline_types.dart';
+import 'avif_decoder.dart';
 
-/// JPEG・PNG・WebP の静止画を MozJPEG へ変換する一連の処理。
-/// デコード後の画素処理は Dart の [Isolate] で完結し、ネイティブ実行は最後の `cjpeg` だけとする。
+/// JPEG・PNG・WebP・AVIF の静止画を MozJPEG へ変換する一連の処理。
+/// AVIF は libavif でデコードし、画素処理は Dart の [Isolate]、JPEG 生成は `cjpeg` が担う。
 /// 入力をすべて読んで検証してから出力用の一時ディレクトリを使い、検証済みの出力だけを公開する。
 class ImageConversionPipeline {
   /// 置換失敗時も元画像を残す処理を検査できるよう、ステージ済み出力の確定処理を差し替え可能なパイプラインを作成する。
@@ -46,7 +47,7 @@ class ImageConversionPipeline {
       throw ArgumentError.value(
         request.outputFile.path,
         'outputFile',
-        'PNG and WebP overwrite outputs must use a separate JPEG path.',
+        'Non-JPEG overwrite outputs must use a separate JPEG path.',
       );
     }
     late final Uint8List rgbBytes;
@@ -158,23 +159,25 @@ class ImageConversionPipeline {
   /// @returns エンコードへ渡す準備済み画像データ
   static Future<_PreparedImage> _prepareImage(String inputPath, ConversionSettings settings) async {
     final inputBytes = await File(inputPath).readAsBytes();
-    final decoder = image.findDecoderForData(inputBytes);
-    if (decoder == null) {
+    final isAvif = AvifDecoder.isAvif(inputBytes);
+    final avif = isAvif ? await AvifDecoder.decode(inputBytes) : null;
+    final decoder = isAvif ? null : image.findDecoderForData(inputBytes);
+    if (decoder == null && avif == null) {
       throw const UnsupportedImageException('The input is not a supported image.');
     }
-    final sourceFormat = _sourceFormatFor(decoder.format);
+    final sourceFormat = isAvif ? SourceImageFormat.avif : _sourceFormatFor(decoder!.format);
     // PNG/WebP の上書きは別名 JPEG を完成させてから元入力を削除するため、別の出力先を使う
-    final decodeInfo = decoder.startDecode(inputBytes);
-    if (decodeInfo == null) {
+    final decodeInfo = decoder?.startDecode(inputBytes);
+    if (decodeInfo == null && avif == null) {
       throw const UnsupportedImageException('The input image could not be decoded.');
     }
     // 静止 WebP はデコーダー実装上フレーム数を 0 と報告する場合があるため、複数フレームだけを拒否して静止画像を変換対象にする
-    if (decoder.numFrames() > 1 || decodeInfo.numFrames > 1) {
+    if ((decoder?.numFrames() ?? 0) > 1 || (decodeInfo?.numFrames ?? 0) > 1) {
       throw const UnsupportedImageException('Animated images cannot be converted.');
     }
 
     // Orientation を先に画素へ反映すると、クロップ比率と JPEG の向きが一致する
-    final decoded = decoder.decode(inputBytes, frame: 0);
+    final decoded = avif?.pixels ?? decoder?.decode(inputBytes, frame: 0);
     if (decoded == null || decoded.width <= 0 || decoded.height <= 0) {
       throw const UnsupportedImageException('The input image contains no pixel data.');
     }
@@ -204,6 +207,7 @@ class ImageConversionPipeline {
         SourceImageFormat.jpeg => ImageMetadataTransfer.extractJpegIccProfile(inputBytes),
         SourceImageFormat.webp => ImageMetadataTransfer.extractWebPIccProfile(inputBytes),
         SourceImageFormat.png => oriented.iccProfile?.clone().decompressed(),
+        SourceImageFormat.avif => avif!.icc,
       },
     );
   }

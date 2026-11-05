@@ -299,7 +299,7 @@ class HomeScreenState extends State<HomeScreen> {
     try {
       final selection = await FilePicker.platform.pickFiles(
         type: FileType.custom,
-        allowedExtensions: const ['jpg', 'jpeg', 'png', 'webp'],
+        allowedExtensions: const ['jpg', 'jpeg', 'png', 'webp', 'avif'],
         allowMultiple: true,
       );
       if (selection != null) {
@@ -348,7 +348,8 @@ class HomeScreenState extends State<HomeScreen> {
       return lowerPath.endsWith('.jpg') ||
           lowerPath.endsWith('.jpeg') ||
           lowerPath.endsWith('.png') ||
-          lowerPath.endsWith('.webp');
+          lowerPath.endsWith('.webp') ||
+          lowerPath.endsWith('.avif');
     });
   }
 

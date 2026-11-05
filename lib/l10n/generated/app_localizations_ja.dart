@@ -42,7 +42,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get idle => '画像を追加してください';
 
   @override
-  String get emptyDescription => 'JPEG・PNG・WebP をここへドロップするか、クリックして選べます。';
+  String get emptyDescription => 'JPEG・PNG・WebP・AVIF をドロップ、またはクリックで選択。';
 
   @override
   String get files => 'ファイル';
@@ -183,7 +183,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get duplicateFilesSkipped => '選択した画像はすでに一覧に追加されています。';
 
   @override
-  String get noSupportedImages => 'JPEG・PNG・WebP の画像を選んでください。';
+  String get noSupportedImages => 'JPEG・PNG・WebP・AVIF の画像を選んでください。';
 
   @override
   String get selectImagesFailed => '画像を選択できませんでした。\nもう一度お試しください。';
@@ -326,7 +326,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get animatedImage => 'アニメーション画像には対応していません';
 
   @override
-  String get unsupportedImage => 'JPEG・PNG・WebP の静止画だけを変換できます';
+  String get unsupportedImage => 'JPEG・PNG・WebP・AVIF の静止画だけを変換できます';
 
   @override
   String get conversionError => '画像を変換できませんでした';

@@ -9,6 +9,7 @@ on:
   push:
     branches:
       - master
+      - feature/avif-support
     tags:
       - 'v*'
   workflow_dispatch:
@@ -87,6 +88,8 @@ jobs:
     name: Build and verify Windows x64
     needs: quality
     runs-on: windows-2022
+    env:
+      IMAGE_SQUOOSHER_REQUIRE_AVIF: '1'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -111,6 +114,10 @@ jobs:
       - name: Build MozJPEG cjpeg
         shell: pwsh
         run: ./tools/build_mozjpeg.ps1
+
+      - name: Build AVIF decoder
+        shell: pwsh
+        run: ./tools/build_avif.ps1
 
       - name: Run Windows Flutter tests
         shell: pwsh
@@ -161,6 +168,18 @@ jobs:
       - name: Bundle MozJPEG cjpeg
         shell: pwsh
         run: ./tools/bundle_mozjpeg.ps1
+
+      - name: Bundle AVIF decoder
+        shell: pwsh
+        run: ./tools/bundle_avif.ps1
+
+      - name: Test bundled AVIF conversion
+        shell: pwsh
+        run: |
+          $env:IMAGE_SQUOOSHER_AVIF = Join-Path $PWD '${{ env.WINDOWS_RELEASE_PATH }}/avif/squoosher_avif.exe'
+          $env:IMAGE_SQUOOSHER_CJPEG = Join-Path $PWD '${{ env.WINDOWS_RELEASE_PATH }}/mozjpeg/cjpeg.exe'
+          flutter test test/services/avif_decoder_test.dart
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
       - name: Test bundled MozJPEG conversion
         shell: pwsh

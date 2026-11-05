@@ -31,6 +31,9 @@
       <Extensions>
         <desktop4:Extension Category="windows.fileExplorerContextMenus">
           <desktop4:FileExplorerContextMenus>
+            <desktop4:ItemType Type=".avif">
+              <desktop4:Verb Id="ImageSquoosher" Clsid="899D9BF0-62F9-49AC-B592-01EEE3C8CF27" />
+            </desktop4:ItemType>
             <desktop4:ItemType Type=".jpg">
               <desktop4:Verb Id="ImageSquoosher" Clsid="899D9BF0-62F9-49AC-B592-01EEE3C8CF27" />
             </desktop4:ItemType>

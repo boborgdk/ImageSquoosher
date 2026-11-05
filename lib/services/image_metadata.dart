@@ -63,6 +63,8 @@ class ImageMetadataTransfer {
       SourceImageFormat.jpeg => _collectJpeg(sourceBytes),
       SourceImageFormat.png => _collectPng(sourceBytes),
       SourceImageFormat.webp => _collectWebP(sourceBytes),
+      // AVIF の EXIF/XMP は向き・コンテナ構造が異なるため、この段階では転送しない。
+      SourceImageFormat.avif => const <JpegMetadataSegment>[],
     };
   }
 

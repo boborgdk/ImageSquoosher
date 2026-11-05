@@ -16,6 +16,7 @@ import '../utils/output_name_planner.dart';
 import 'image_conversion_pipeline.dart';
 import 'image_pipeline_types.dart';
 import 'logging_service.dart';
+import 'avif_decoder.dart';
 
 /// 画像キューの現在の処理状態。
 enum QueuedImageStatus { queued, processing, completed, failed, stopped }
@@ -273,6 +274,10 @@ class PipelineCompressionEngine implements ImageCompressionEngine {
   /// @returns 入力画像の寸法情報
   static Future<_ImageInspection> _inspectInputImage(File inputFile) async {
     final inputBytes = await inputFile.readAsBytes();
+    if (AvifDecoder.isAvif(inputBytes)) {
+      final decoded = await AvifDecoder.decode(inputBytes);
+      return _ImageInspection(ImageDimensions(decoded.pixels.width, decoded.pixels.height));
+    }
     final decoder = image.findDecoderForData(inputBytes);
     final decodeInfo = decoder?.startDecode(inputBytes);
     if (decodeInfo == null || decodeInfo.width <= 0 || decodeInfo.height <= 0) {

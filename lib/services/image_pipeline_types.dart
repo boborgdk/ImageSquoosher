@@ -14,6 +14,9 @@ enum SourceImageFormat {
 
   /// WebP 形式。
   webp,
+
+  /// AVIF 形式。
+  avif,
 }
 
 /// 1ファイルを JPEG へ変換する指定。

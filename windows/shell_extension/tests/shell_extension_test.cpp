@@ -232,11 +232,13 @@ int wmain(int argument_count, wchar_t** arguments) {
   const auto supported_jpeg = test_directory / L"uppercase.JPEG";
   const auto supported_png = test_directory / L"transparent.png";
   const auto supported_webp = test_directory / L"animation.webp";
+  const auto supported_avif = test_directory / L"日本語 空白.AVIF";
   const auto unsupported = test_directory / L"document.txt";
   std::ofstream(supported).put('a');
   std::ofstream(supported_jpeg).put('a');
   std::ofstream(supported_png).put('a');
   std::ofstream(supported_webp).put('a');
+  std::ofstream(supported_avif).put('a');
   std::ofstream(unsupported).put('b');
 
   // フォルダと非対応ファイルだけなら隠し、対応画像を1件でも含む選択では有効にする
@@ -254,7 +256,7 @@ int wmain(int argument_count, wchar_t** arguments) {
             state == ECS_ENABLED,
         "A mixed selection containing an image did not enable the command.");
   for (const auto& image :
-       {supported, supported_jpeg, supported_png, supported_webp}) {
+       {supported, supported_jpeg, supported_png, supported_webp, supported_avif}) {
     selection = CreateSelection({image.wstring()});
     check(selection != nullptr &&
               SUCCEEDED(command->GetState(selection.Get(), TRUE, &state)) &&

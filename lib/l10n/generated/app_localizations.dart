@@ -161,7 +161,7 @@ abstract class AppLocalizations {
   /// No description provided for @emptyDescription.
   ///
   /// In ja, this message translates to:
-  /// **'JPEG・PNG・WebP をここへドロップするか、クリックして選べます。'**
+  /// **'JPEG・PNG・WebP・AVIF をドロップ、またはクリックで選択。'**
   String get emptyDescription;
 
   /// No description provided for @files.
@@ -443,7 +443,7 @@ abstract class AppLocalizations {
   /// No description provided for @noSupportedImages.
   ///
   /// In ja, this message translates to:
-  /// **'JPEG・PNG・WebP の画像を選んでください。'**
+  /// **'JPEG・PNG・WebP・AVIF の画像を選んでください。'**
   String get noSupportedImages;
 
   /// No description provided for @selectImagesFailed.
@@ -713,7 +713,7 @@ abstract class AppLocalizations {
   /// No description provided for @unsupportedImage.
   ///
   /// In ja, this message translates to:
-  /// **'JPEG・PNG・WebP の静止画だけを変換できます'**
+  /// **'JPEG・PNG・WebP・AVIF の静止画だけを変換できます'**
   String get unsupportedImage;
 
   /// No description provided for @conversionError.

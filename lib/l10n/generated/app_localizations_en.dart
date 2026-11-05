@@ -42,7 +42,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get idle => 'Add images to begin';
 
   @override
-  String get emptyDescription => 'Drop JPEG, PNG, or WebP images here, or click to choose files.';
+  String get emptyDescription => 'Drop JPEG, PNG, WebP, or AVIF here, or click to choose.';
 
   @override
   String get files => 'files';
@@ -183,7 +183,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get duplicateFilesSkipped => 'Duplicate images were skipped.';
 
   @override
-  String get noSupportedImages => 'Choose JPEG, PNG, or WebP images.';
+  String get noSupportedImages => 'Choose JPEG, PNG, WebP, or AVIF images.';
 
   @override
   String get selectImagesFailed => 'Could not select image files.';
@@ -326,7 +326,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get animatedImage => 'Animated images are not supported';
 
   @override
-  String get unsupportedImage => 'Only still JPEG, PNG, and WebP images can be converted';
+  String get unsupportedImage => 'Only still JPEG, PNG, WebP, and AVIF images can be converted';
 
   @override
   String get conversionError => 'The image could not be converted';

@@ -35,6 +35,7 @@ migrate_working_dir/
 /coverage/
 
 # Generated MozJPEG binaries and distribution archives
+/native/avif/bin/
 /native/mozjpeg/macos/*
 /native/mozjpeg/macos/*/*
 /native/mozjpeg/windows/*

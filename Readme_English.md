@@ -395,3 +395,7 @@ tools/bundle_mozjpeg.sh build/macos/Build/Products/Release/ImageSquoosher.app
 ## License
 
 [MIT License](License.txt)
+
+## AVIF input (Windows feature branch)
+
+Still AVIF files can be converted to JPEG with the existing MozJPEG encoder and scaling. See [AVIF-NOTES.md](AVIF-NOTES.md) for supported variants, metadata limits, build instructions and Explorer re-registration. macOS AVIF packaging is not included.
