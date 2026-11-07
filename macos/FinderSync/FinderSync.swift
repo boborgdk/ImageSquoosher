@@ -11,6 +11,7 @@ final class FinderSync: FIFinderSync {
     static let supportedImageExtensions: Set<String> = [
       "jpeg",
       "jpg",
+      "avif",
       "png",
       "webp",
     ]

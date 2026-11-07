@@ -10,6 +10,7 @@ on:
     branches:
       - master
       - feature/avif-support
+      - feature/macos-avif-support
     tags:
       - 'v*'
   workflow_dispatch:
@@ -305,6 +306,14 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
+      - name: Install native AVIF build dependencies
+        shell: bash
+        run: brew install cmake ninja nasm
+
+      - name: Build macOS AVIF decoder
+        shell: bash
+        run: bash tools/build_avif.sh
+
       - name: Download MozJPEG cjpeg
         uses: actions/download-artifact@v4
         with:
@@ -318,6 +327,7 @@ jobs:
       - name: Run macOS desktop integration test
         shell: bash
         run: |
+          export IMAGE_SQUOOSHER_AVIF="$PWD/native/avif/bin/squoosher_avif"
           export IMAGE_SQUOOSHER_CJPEG="$PWD/native/mozjpeg/macos/arm64/cjpeg"
           # Flutter 3.35.7 はアプリ終了時にログ接続を閉じるため、テストごとに起動し直す
           for test_file in integration_test/*_test.dart; do
@@ -331,6 +341,19 @@ jobs:
         shell: bash
         run: bash tools/bundle_mozjpeg.sh "${{ env.MACOS_APP_PATH }}"
 
+      - name: Bundle AVIF decoder
+        shell: bash
+        run: bash tools/bundle_avif.sh "${{ env.MACOS_APP_PATH }}"
+
+      - name: Test bundled macOS AVIF conversion
+        shell: bash
+        env:
+          IMAGE_SQUOOSHER_REQUIRE_AVIF: '1'
+        run: |
+          IMAGE_SQUOOSHER_AVIF="$PWD/${{ env.MACOS_APP_PATH }}/Contents/Resources/avif/squoosher_avif" \
+          IMAGE_SQUOOSHER_CJPEG="$PWD/${{ env.MACOS_APP_PATH }}/Contents/Resources/mozjpeg/cjpeg" \
+          flutter test test/services/avif_decoder_test.dart
+
       - name: Test bundled MozJPEG conversion
         shell: bash
         run: |
@@ -342,12 +365,15 @@ jobs:
         run: |
           app_executable="${{ env.MACOS_APP_PATH }}/Contents/MacOS/ImageSquoosher"
           cjpeg_executable="${{ env.MACOS_APP_PATH }}/Contents/Resources/mozjpeg/cjpeg"
+          avif_executable="${{ env.MACOS_APP_PATH }}/Contents/Resources/avif/squoosher_avif"
           finder_extension="${{ env.MACOS_APP_PATH }}/Contents/PlugIns/ImageSquoosherFinderSync.appex"
           test -x "$app_executable"
           test -x "$cjpeg_executable"
+          test -x "$avif_executable"
           test -d "$finder_extension"
           file "$app_executable" | grep -q 'arm64'
           file "$cjpeg_executable" | grep -q 'arm64'
+          file "$avif_executable" | grep -q 'arm64'
           "$cjpeg_executable" -version
 
       - name: Require signing for a tag release
