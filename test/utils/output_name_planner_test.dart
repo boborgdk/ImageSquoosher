@@ -2,6 +2,30 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:image_squoosher/utils/output_name_planner.dart';
 
 void main() {
+  test('default suffix follows output dimensions', () {
+    expect(OutputNamePlanner.suffixForDimensions(suffix: '_resized', width: 1200, height: 675), '_keyart');
+    expect(OutputNamePlanner.suffixForDimensions(suffix: '_resized', width: 1000, height: 563), '_keyart');
+    expect(OutputNamePlanner.suffixForDimensions(suffix: '_resized', width: 600, height: 900), '_poster');
+    expect(OutputNamePlanner.suffixForDimensions(suffix: '_resized', width: 1200, height: 800), '_resized');
+  });
+
+  test('custom suffix takes precedence over automatic naming', () {
+    expect(OutputNamePlanner.suffixForDimensions(suffix: '_manual', width: 1200, height: 675), '_manual');
+    expect(OutputNamePlanner.suffixForDimensions(suffix: '', width: 600, height: 900), '');
+  });
+
+  test('automatic suffix retains collision protection', () {
+    final suffix = OutputNamePlanner.suffixForDimensions(suffix: '_resized', width: 1200, height: 675);
+    expect(
+      OutputNamePlanner.outputPath(
+        inputPath: '/pictures/Beck.avif',
+        suffix: suffix,
+        existingPaths: const ['/pictures/Beck_keyart.jpg'],
+      ),
+      '/pictures/Beck_keyart (1).jpg',
+    );
+  });
+
   test('adds the default suffix and JPEG extension', () {
     expect(
       OutputNamePlanner.outputPath(inputPath: '/pictures/photo.png'),

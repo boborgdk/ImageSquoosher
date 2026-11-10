@@ -70,6 +70,27 @@ class OutputNamePlanner {
     });
   }
 
+  /// Use output dimensions for DIGITALT.TV naming when the default suffix is selected.
+  /// Explicit custom suffixes are left untouched. The tolerance accommodates
+  /// integer rounding of resized images (e.g. 1000 x 563 for 16:9).
+  static String suffixForDimensions({
+    required String suffix,
+    required int width,
+    required int height,
+  }) {
+    if (suffix != '_resized' || width <= 0 || height <= 0) {
+      return suffix;
+    }
+    final ratio = width / height;
+    if ((ratio - 16 / 9).abs() / (16 / 9) <= 0.005) {
+      return '_keyart';
+    }
+    if ((ratio - 2 / 3).abs() / (2 / 3) <= 0.005) {
+      return '_poster';
+    }
+    return suffix;
+  }
+
   /// 入力名、既存名、サフィックスから上書き対象または空き名を決める。
   /// @param inputPath 変換元のパス
   /// @param existingPaths 既に存在するパスの一覧

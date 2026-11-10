@@ -206,10 +206,21 @@ class PipelineCompressionEngine implements ImageCompressionEngine {
       try {
         final inputFile = File(queuedImage.path);
         final existingPaths = await _existingPaths(inputFile.parent);
+        final sourceDimensions = queuedImage.sourceDimensions;
+        final outputDimensions = sourceDimensions == null
+            ? null
+            : request.settings.plan(sourceDimensions).output;
+        final outputSuffix = outputDimensions == null
+            ? request.settings.suffix
+            : OutputNamePlanner.suffixForDimensions(
+                suffix: request.settings.suffix,
+                width: outputDimensions.width,
+                height: outputDimensions.height,
+              );
         final outputPlan = OutputNamePlanner.plan(
           inputPath: inputFile.path,
           existingPaths: {...existingPaths, ...occupiedPaths},
-          suffix: request.settings.suffix,
+          suffix: outputSuffix,
           overwrite: request.settings.overwrite,
         );
         occupiedPaths.add(outputPlan.outputPath);
@@ -640,10 +651,15 @@ class SquoosherController extends ChangeNotifier {
       final existingPaths =
           existingPathsByDirectory[parentPath] ?? await _existingPathsReader(File(queuedImage.path).parent);
       existingPathsByDirectory[parentPath] = existingPaths;
+      final outputDimensions = settings.plan(sourceDimensions).output;
       final outputPlan = OutputNamePlanner.plan(
         inputPath: queuedImage.path,
         existingPaths: {...existingPaths, ...plannedPaths},
-        suffix: settings.suffix,
+        suffix: OutputNamePlanner.suffixForDimensions(
+          suffix: settings.suffix,
+          width: outputDimensions.width,
+          height: outputDimensions.height,
+        ),
         overwrite: settings.overwrite,
       );
       plannedPaths.add(outputPlan.outputPath);
