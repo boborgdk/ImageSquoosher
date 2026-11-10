@@ -113,11 +113,15 @@ class QueuedImage {
       sourceDimensions: sourceDimensions ?? this.sourceDimensions,
       outputPath: outputPath ?? this.outputPath,
       outputDimensions: outputDimensions ?? this.outputDimensions,
-      outputByteLength: clearOutputByteLength ? null : outputByteLength ?? this.outputByteLength,
+      outputByteLength: clearOutputByteLength
+          ? null
+          : outputByteLength ?? this.outputByteLength,
       status: status ?? this.status,
       progress: progress ?? this.progress,
       isInputValid: isInputValid ?? this.isInputValid,
-      errorMessage: clearErrorMessage ? null : errorMessage ?? this.errorMessage,
+      errorMessage: clearErrorMessage
+          ? null
+          : errorMessage ?? this.errorMessage,
     );
   }
 }
@@ -138,7 +142,11 @@ class CompressionRequest {
   /// @param images 変換対象の画像一覧
   /// @param settings 適用する変換条件
   /// @param onProgress 画像ごとの進捗通知
-  const CompressionRequest({required this.images, required this.settings, this.onProgress});
+  const CompressionRequest({
+    required this.images,
+    required this.settings,
+    this.onProgress,
+  });
 
   /// 変換対象の画像一覧
   final List<QueuedImage> images;
@@ -172,7 +180,8 @@ abstract interface class ImageCompressionEngine {
 class PipelineCompressionEngine implements ImageCompressionEngine {
   /// 変換パイプラインを指定してエンジンを作成する。
   /// @param pipeline 使用する変換パイプライン
-  PipelineCompressionEngine({ImageConversionPipeline? pipeline}) : _pipeline = pipeline ?? ImageConversionPipeline();
+  PipelineCompressionEngine({ImageConversionPipeline? pipeline})
+    : _pipeline = pipeline ?? ImageConversionPipeline();
 
   final ImageConversionPipeline _pipeline;
 
@@ -199,7 +208,11 @@ class PipelineCompressionEngine implements ImageCompressionEngine {
     // 同じ起動で作る出力も候補へ入れ、選択した一覧内で名前が衝突しないようにする
     for (final queuedImage in request.images) {
       if (stopToken.isRequested) {
-        return ImageBatchConversionResult(completed: completed, failures: failures, wasStopped: true);
+        return ImageBatchConversionResult(
+          completed: completed,
+          failures: failures,
+          wasStopped: true,
+        );
       }
 
       onItemStarted(queuedImage);
@@ -230,8 +243,11 @@ class PipelineCompressionEngine implements ImageCompressionEngine {
             outputFile: File(outputPlan.outputPath),
             cjpegExecutable: executable,
             settings: request.settings,
-            onProgress: (progress) => request.onProgress?.call(queuedImage.path, progress),
-            finalizeStagedOutput: Platform.isMacOS || Platform.isWindows ? _copySourceFileDates : null,
+            onProgress: (progress) =>
+                request.onProgress?.call(queuedImage.path, progress),
+            finalizeStagedOutput: Platform.isMacOS || Platform.isWindows
+                ? _copySourceFileDates
+                : null,
           ),
         );
         await _removeConvertedSource(result, request.settings);
@@ -260,13 +276,16 @@ class PipelineCompressionEngine implements ImageCompressionEngine {
     final executableDirectory = File(Platform.resolvedExecutable).parent;
     final configuredPath = Platform.environment['IMAGE_SQUOOSHER_CJPEG'];
     final candidates = <File>[
-      if (configuredPath != null && configuredPath.isNotEmpty) File(configuredPath),
+      if (configuredPath != null && configuredPath.isNotEmpty)
+        File(configuredPath),
       if (Platform.isMacOS)
         File(
           '${executableDirectory.parent.path}${Platform.pathSeparator}Resources${Platform.pathSeparator}mozjpeg${Platform.pathSeparator}cjpeg',
         ),
       if (Platform.isWindows)
-        File('${executableDirectory.path}${Platform.pathSeparator}mozjpeg${Platform.pathSeparator}cjpeg.exe'),
+        File(
+          '${executableDirectory.path}${Platform.pathSeparator}mozjpeg${Platform.pathSeparator}cjpeg.exe',
+        ),
       File(
         '${Directory.current.path}${Platform.pathSeparator}native${Platform.pathSeparator}mozjpeg${Platform.pathSeparator}'
         '${Platform.isWindows ? 'windows${Platform.pathSeparator}cjpeg.exe' : 'macos${Platform.pathSeparator}arm64${Platform.pathSeparator}cjpeg'}',
@@ -287,20 +306,28 @@ class PipelineCompressionEngine implements ImageCompressionEngine {
     final inputBytes = await inputFile.readAsBytes();
     if (AvifDecoder.isAvif(inputBytes)) {
       final decoded = await AvifDecoder.decode(inputBytes);
-      return _ImageInspection(ImageDimensions(decoded.pixels.width, decoded.pixels.height));
+      return _ImageInspection(
+        ImageDimensions(decoded.pixels.width, decoded.pixels.height),
+      );
     }
     final decoder = image.findDecoderForData(inputBytes);
     final decodeInfo = decoder?.startDecode(inputBytes);
     if (decodeInfo == null || decodeInfo.width <= 0 || decodeInfo.height <= 0) {
-      throw const UnsupportedImageException('The input image could not be decoded.');
+      throw const UnsupportedImageException(
+        'The input image could not be decoded.',
+      );
     }
     if (decoder!.format != image.ImageFormat.jpg &&
         decoder.format != image.ImageFormat.png &&
         decoder.format != image.ImageFormat.webp) {
-      throw const UnsupportedImageException('Only JPEG, PNG, and WebP input files are supported.');
+      throw const UnsupportedImageException(
+        'Only JPEG, PNG, and WebP input files are supported.',
+      );
     }
     if (decoder.numFrames() > 1 || decodeInfo.numFrames > 1) {
-      throw const UnsupportedImageException('Animated images cannot be converted.');
+      throw const UnsupportedImageException(
+        'Animated images cannot be converted.',
+      );
     }
     // 画素の破損検査は変換時の全画素デコードが担い、一覧の準備はヘッダーだけで完了する
     // PNG / WebP は変換用デコーダーと同じく保存された画素の向きで寸法を表示する
@@ -329,12 +356,16 @@ class PipelineCompressionEngine implements ImageCompressionEngine {
   /// 入力が残っている間に、検証済みの一時 JPEG へ作成日時と更新日時を複製する。
   /// @param sourceFile 日時を読み取る入力ファイル
   /// @param stagedOutput 日時を書き込む一時出力
-  static Future<void> _copySourceFileDates(File sourceFile, File stagedOutput) async {
+  static Future<void> _copySourceFileDates(
+    File sourceFile,
+    File stagedOutput,
+  ) async {
     try {
-      await const MethodChannel('net.tsukumijima.image-squoosher/finder_sync').invokeMethod<void>(
-        'copySourceFileDatesToOutputFile',
-        {'sourcePath': sourceFile.path, 'outputPath': stagedOutput.path},
-      );
+      await const MethodChannel('net.tsukumijima.image-squoosher/finder_sync')
+          .invokeMethod<void>('copySourceFileDatesToOutputFile', {
+            'sourcePath': sourceFile.path,
+            'outputPath': stagedOutput.path,
+          });
     } catch (error, stackTrace) {
       LoggingService.instance.warning(
         'Failed to copy source file dates.',
@@ -370,7 +401,8 @@ class SquoosherController extends ChangeNotifier {
     Future<Set<String>> Function(Directory directory)? existingPathsReader,
     LoggingService? log,
   }) : _engine = engine ?? PipelineCompressionEngine(),
-       _existingPathsReader = existingPathsReader ?? PipelineCompressionEngine._existingPaths,
+       _existingPathsReader =
+           existingPathsReader ?? PipelineCompressionEngine._existingPaths,
        _log = log ?? LoggingService.instance;
 
   /// 画像変換を実行するエンジン
@@ -443,21 +475,33 @@ class SquoosherController extends ChangeNotifier {
 
   /// 完了した画像の件数。
   /// @returns 完了した画像の件数
-  int get completedCount => _images.where((image) => image.status == QueuedImageStatus.completed).length;
+  int get completedCount => _images
+      .where((image) => image.status == QueuedImageStatus.completed)
+      .length;
 
   /// 失敗した画像の件数。
   /// @returns 失敗した画像の件数
-  int get failedCount => _images.where((image) => image.status == QueuedImageStatus.failed).length;
+  int get failedCount =>
+      _images.where((image) => image.status == QueuedImageStatus.failed).length;
 
   /// 停止済み画像の件数。
   /// @returns 停止済み画像の件数
-  int get stoppedCount => _images.where((image) => image.status == QueuedImageStatus.stopped).length;
+  int get stoppedCount => _images
+      .where((image) => image.status == QueuedImageStatus.stopped)
+      .length;
 
   /// キュー全体の進捗率。
   /// @returns キュー全体の進捗率
   double get progress => _images.isEmpty
       ? 0
-      : _images.fold<double>(0, (sum, image) => sum + (image.status == QueuedImageStatus.failed ? 1 : image.progress)) /
+      : _images.fold<double>(
+              0,
+              (sum, image) =>
+                  sum +
+                  (image.status == QueuedImageStatus.failed
+                      ? 1
+                      : image.progress),
+            ) /
             _images.length;
 
   /// 変換可能な画像が含まれるかどうか。
@@ -481,7 +525,9 @@ class SquoosherController extends ChangeNotifier {
       return 0;
     }
 
-    final knownPaths = _images.map((image) => _normalizedPath(image.path)).toSet();
+    final knownPaths = _images
+        .map((image) => _normalizedPath(image.path))
+        .toSet();
     var addedCount = 0;
     for (final path in paths) {
       final normalizedPath = _normalizedPath(path);
@@ -494,7 +540,8 @@ class SquoosherController extends ChangeNotifier {
       final inspectionToken = Object();
       _inspectionTokens[path] = inspectionToken;
       _inspectionTail = _inspectionTail.then((_) async {
-        if (!_isDisposed && identical(_inspectionTokens[path], inspectionToken)) {
+        if (!_isDisposed &&
+            identical(_inspectionTokens[path], inspectionToken)) {
           await _loadImageDetails(path, inspectionToken);
         }
       });
@@ -565,9 +612,12 @@ class SquoosherController extends ChangeNotifier {
       if (_images[index].isInputValid) {
         // JPEG の上書き結果を再処理するときは、保存済みの画像を新しい入力として扱う
         final hasReplacedInput =
-            _images[index].status == QueuedImageStatus.completed && _images[index].path == _images[index].outputPath;
+            _images[index].status == QueuedImageStatus.completed &&
+            _images[index].path == _images[index].outputPath;
         _images[index] = _images[index].copyWith(
-          sourceDimensions: hasReplacedInput ? _images[index].outputDimensions : null,
+          sourceDimensions: hasReplacedInput
+              ? _images[index].outputDimensions
+              : null,
           byteLength: hasReplacedInput ? _images[index].outputByteLength : null,
           status: QueuedImageStatus.queued,
           progress: 0,
@@ -609,10 +659,15 @@ class SquoosherController extends ChangeNotifier {
         if (_images[index].isInputValid) {
           // 完了表示の比較情報は待機へ戻す時点で、上書き後の入力寸法とサイズへ切り替える
           final hasReplacedInput =
-              _images[index].status == QueuedImageStatus.completed && _images[index].path == _images[index].outputPath;
+              _images[index].status == QueuedImageStatus.completed &&
+              _images[index].path == _images[index].outputPath;
           _images[index] = _images[index].copyWith(
-            sourceDimensions: hasReplacedInput ? _images[index].outputDimensions : null,
-            byteLength: hasReplacedInput ? _images[index].outputByteLength : null,
+            sourceDimensions: hasReplacedInput
+                ? _images[index].outputDimensions
+                : null,
+            byteLength: hasReplacedInput
+                ? _images[index].outputByteLength
+                : null,
             status: QueuedImageStatus.queued,
             progress: 0,
             clearErrorMessage: true,
@@ -624,8 +679,11 @@ class SquoosherController extends ChangeNotifier {
     _displaySettings = settings;
     for (var index = 0; index < _images.length; index += 1) {
       final current = _images[index];
-      if (current.sourceDimensions != null && current.status != QueuedImageStatus.completed) {
-        _images[index] = current.copyWith(outputDimensions: settings.plan(current.sourceDimensions!).output);
+      if (current.sourceDimensions != null &&
+          current.status != QueuedImageStatus.completed) {
+        _images[index] = current.copyWith(
+          outputDimensions: settings.plan(current.sourceDimensions!).output,
+        );
       }
     }
     notifyListeners();
@@ -635,7 +693,8 @@ class SquoosherController extends ChangeNotifier {
         .whereType<String>()
         .toSet();
     final existingPathsByDirectory = <String, Set<String>>{};
-    final outputPlans = <String, ({String outputPath, ImageDimensions outputDimensions})>{};
+    final outputPlans =
+        <String, ({String outputPath, ImageDimensions outputDimensions})>{};
     final imagesToPlan = List<QueuedImage>.of(_images);
     for (final queuedImage in imagesToPlan) {
       // 完了行は実際に生成したパス、寸法、サイズを保持する
@@ -649,7 +708,8 @@ class SquoosherController extends ChangeNotifier {
       final parentPath = File(queuedImage.path).parent.path;
       // 空のディレクトリも読み取り済みとして保存し、同じ一覧をファイル数だけ取得する負荷を抑える
       final existingPaths =
-          existingPathsByDirectory[parentPath] ?? await _existingPathsReader(File(queuedImage.path).parent);
+          existingPathsByDirectory[parentPath] ??
+          await _existingPathsReader(File(queuedImage.path).parent);
       existingPathsByDirectory[parentPath] = existingPaths;
       final outputDimensions = settings.plan(sourceDimensions).output;
       final outputPlan = OutputNamePlanner.plan(
@@ -698,8 +758,12 @@ class SquoosherController extends ChangeNotifier {
     _lastRunWasStopped = false;
     _stopToken = ImageConversionStopToken();
     for (var index = 0; index < _images.length; index += 1) {
-      if (_images[index].isInputValid && _images[index].status != QueuedImageStatus.completed) {
-        _images[index] = _images[index].copyWith(status: QueuedImageStatus.queued, clearErrorMessage: true);
+      if (_images[index].isInputValid &&
+          _images[index].status != QueuedImageStatus.completed) {
+        _images[index] = _images[index].copyWith(
+          status: QueuedImageStatus.queued,
+          clearErrorMessage: true,
+        );
       }
     }
     notifyListeners();
@@ -713,7 +777,13 @@ class SquoosherController extends ChangeNotifier {
 
       final result = await _engine.compress(
         CompressionRequest(
-          images: images.where((image) => image.isInputValid && image.status == QueuedImageStatus.queued).toList(),
+          images: images
+              .where(
+                (image) =>
+                    image.isInputValid &&
+                    image.status == QueuedImageStatus.queued,
+              )
+              .toList(),
           settings: settings,
           onProgress: _markProgress,
         ),
@@ -729,7 +799,12 @@ class SquoosherController extends ChangeNotifier {
       _log.info('Image compression completed.', tag: 'Compression');
       return true;
     } catch (error, stackTrace) {
-      _log.error('Image compression failed.', tag: 'Compression', error: error, stackTrace: stackTrace);
+      _log.error(
+        'Image compression failed.',
+        tag: 'Compression',
+        error: error,
+        stackTrace: stackTrace,
+      );
       rethrow;
     } finally {
       _stopToken = null;
@@ -757,20 +832,32 @@ class SquoosherController extends ChangeNotifier {
     try {
       final inputFile = File(path);
       final stat = await inputFile.stat();
-      final inspection = await Isolate.run(() => PipelineCompressionEngine._inspectInputImage(File(path)));
-      if (_isDisposed || !identical(_inspectionTokens[path], inspectionToken)) return;
+      final inspection = await Isolate.run(
+        () => PipelineCompressionEngine._inspectInputImage(File(path)),
+      );
+      if (_isDisposed || !identical(_inspectionTokens[path], inspectionToken))
+        return;
       final index = _images.indexWhere((image) => image.path == path);
       if (index < 0) {
         return;
       }
-      _images[index] = _images[index].copyWith(byteLength: stat.size, sourceDimensions: inspection.dimensions);
+      _images[index] = _images[index].copyWith(
+        byteLength: stat.size,
+        sourceDimensions: inspection.dimensions,
+      );
       if (_displaySettings != null && !_isCompressing) {
         unawaited(updateOutputPlans(_displaySettings!));
       }
       notifyListeners();
     } catch (error, stackTrace) {
-      if (_isDisposed || !identical(_inspectionTokens[path], inspectionToken)) return;
-      _log.warning('Failed to read image details.', tag: 'Queue', error: error, stackTrace: stackTrace);
+      if (_isDisposed || !identical(_inspectionTokens[path], inspectionToken))
+        return;
+      _log.warning(
+        'Failed to read image details.',
+        tag: 'Queue',
+        error: error,
+        stackTrace: stackTrace,
+      );
       final index = _images.indexWhere((image) => image.path == path);
       if (index >= 0) {
         _images[index] = _images[index].copyWith(
@@ -786,7 +873,11 @@ class SquoosherController extends ChangeNotifier {
   /// 変換中の行を見つけて状態を切り替える。
   /// @param queuedImage 処理を開始した画像
   void _markProcessing(QueuedImage queuedImage) {
-    _replaceByPath(queuedImage.path, (current) => current.copyWith(status: QueuedImageStatus.processing, progress: 0));
+    _replaceByPath(
+      queuedImage.path,
+      (current) =>
+          current.copyWith(status: QueuedImageStatus.processing, progress: 0),
+    );
   }
 
   /// エンコーダーの細かな通知を描画に必要な刻みへまとめる。
@@ -809,9 +900,15 @@ class SquoosherController extends ChangeNotifier {
     _replaceByPath(
       result.inputFile.path,
       (current) => current.copyWith(
-        sourceDimensions: ImageDimensions(result.sourceWidth, result.sourceHeight),
+        sourceDimensions: ImageDimensions(
+          result.sourceWidth,
+          result.sourceHeight,
+        ),
         outputPath: result.outputFile.path,
-        outputDimensions: ImageDimensions(result.outputWidth, result.outputHeight),
+        outputDimensions: ImageDimensions(
+          result.outputWidth,
+          result.outputHeight,
+        ),
         outputByteLength: outputSize,
         status: QueuedImageStatus.completed,
         progress: 1,
@@ -826,7 +923,10 @@ class SquoosherController extends ChangeNotifier {
   void _markFailed(ImageConversionFailure failure) {
     _replaceByPath(
       failure.inputFile.path,
-      (current) => current.copyWith(status: QueuedImageStatus.failed, errorMessage: failure.error.toString()),
+      (current) => current.copyWith(
+        status: QueuedImageStatus.failed,
+        errorMessage: failure.error.toString(),
+      ),
     );
   }
 
@@ -834,7 +934,9 @@ class SquoosherController extends ChangeNotifier {
   void _markRemainingAsStopped() {
     for (var index = 0; index < _images.length; index += 1) {
       if (_images[index].status == QueuedImageStatus.queued) {
-        _images[index] = _images[index].copyWith(status: QueuedImageStatus.stopped);
+        _images[index] = _images[index].copyWith(
+          status: QueuedImageStatus.stopped,
+        );
       }
     }
   }
@@ -842,7 +944,10 @@ class SquoosherController extends ChangeNotifier {
   /// パスに対応する1行を置き換え、画面へ変更を通知する。
   /// @param path 更新する画像のパス
   /// @param update 現在の行から更新後の行を作る処理
-  void _replaceByPath(String path, QueuedImage Function(QueuedImage current) update) {
+  void _replaceByPath(
+    String path,
+    QueuedImage Function(QueuedImage current) update,
+  ) {
     final index = _images.indexWhere((image) => image.path == path);
     if (index < 0) {
       return;

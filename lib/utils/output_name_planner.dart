@@ -42,7 +42,8 @@ class OutputFilePlan {
   /// 計画の内容からハッシュ値を生成する。
   /// @returns すべての計画項目に基づくハッシュ値
   @override
-  int get hashCode => Object.hash(inputPath, outputPath, isOverwrite, sequenceNumber);
+  int get hashCode =>
+      Object.hash(inputPath, outputPath, isOverwrite, sequenceNumber);
 }
 
 /// 画像の出力ファイル名を決める純粋な命名処理。
@@ -64,7 +65,15 @@ class OutputNamePlanner {
         return false;
       }
       return switch (codeUnit) {
-        0x22 || 0x2a || 0x2f || 0x3a || 0x3c || 0x3e || 0x3f || 0x5c || 0x7c => false,
+        0x22 ||
+        0x2a ||
+        0x2f ||
+        0x3a ||
+        0x3c ||
+        0x3e ||
+        0x3f ||
+        0x5c ||
+        0x7c => false,
         _ => true,
       };
     });
@@ -115,7 +124,10 @@ class OutputNamePlanner {
         'Suffix must be a filename part without path separators or reserved characters.',
       );
     }
-    final extension = outputExtension.trim().replaceFirst(RegExp(r'^\.'), '').toLowerCase();
+    final extension = outputExtension
+        .trim()
+        .replaceFirst(RegExp(r'^\.'), '')
+        .toLowerCase();
     if (extension.isEmpty) {
       throw ArgumentError.value(outputExtension, 'outputExtension');
     }
@@ -258,7 +270,9 @@ class OutputNamePlanner {
   /// @param stem 拡張子を除いたファイル名
   /// @returns 末尾の連番を除いたファイル名
   static String _removeTrailingSequence(String stem) {
-    return _trailingSequence(stem) == null ? stem : stem.replaceFirst(RegExp(r' \(\d+\)$'), '');
+    return _trailingSequence(stem) == null
+        ? stem
+        : stem.replaceFirst(RegExp(r' \(\d+\)$'), '');
   }
 
   /// 必要な場合だけファイル名末尾へ連番を付ける。
@@ -273,10 +287,12 @@ class OutputNamePlanner {
   /// @param directory ディレクトリ部分
   /// @param fileName ファイル名部分
   /// @returns 結合したパス
-  static String _join(String directory, String fileName) => '$directory$fileName';
+  static String _join(String directory, String fileName) =>
+      '$directory$fileName';
 
   /// 比較時だけ区切り文字を統一して OS 差を吸収する。
   /// @param path 比較するパス
   /// @returns 比較用に正規化したパス
-  static String _normalizePath(String path) => path.replaceAll('\\', '/').toLowerCase();
+  static String _normalizePath(String path) =>
+      path.replaceAll('\\', '/').toLowerCase();
 }

@@ -3,19 +3,65 @@ import 'package:image_squoosher/utils/output_name_planner.dart';
 
 void main() {
   test('default suffix follows output dimensions', () {
-    expect(OutputNamePlanner.suffixForDimensions(suffix: '_resized', width: 1200, height: 675), '_keyart');
-    expect(OutputNamePlanner.suffixForDimensions(suffix: '_resized', width: 1000, height: 563), '_keyart');
-    expect(OutputNamePlanner.suffixForDimensions(suffix: '_resized', width: 600, height: 900), '_poster');
-    expect(OutputNamePlanner.suffixForDimensions(suffix: '_resized', width: 1200, height: 800), '_resized');
+    expect(
+      OutputNamePlanner.suffixForDimensions(
+        suffix: '_resized',
+        width: 1200,
+        height: 675,
+      ),
+      '_keyart',
+    );
+    expect(
+      OutputNamePlanner.suffixForDimensions(
+        suffix: '_resized',
+        width: 1000,
+        height: 563,
+      ),
+      '_keyart',
+    );
+    expect(
+      OutputNamePlanner.suffixForDimensions(
+        suffix: '_resized',
+        width: 600,
+        height: 900,
+      ),
+      '_poster',
+    );
+    expect(
+      OutputNamePlanner.suffixForDimensions(
+        suffix: '_resized',
+        width: 1200,
+        height: 800,
+      ),
+      '_resized',
+    );
   });
 
   test('custom suffix takes precedence over automatic naming', () {
-    expect(OutputNamePlanner.suffixForDimensions(suffix: '_manual', width: 1200, height: 675), '_manual');
-    expect(OutputNamePlanner.suffixForDimensions(suffix: '', width: 600, height: 900), '');
+    expect(
+      OutputNamePlanner.suffixForDimensions(
+        suffix: '_manual',
+        width: 1200,
+        height: 675,
+      ),
+      '_manual',
+    );
+    expect(
+      OutputNamePlanner.suffixForDimensions(
+        suffix: '',
+        width: 600,
+        height: 900,
+      ),
+      '',
+    );
   });
 
   test('automatic suffix retains collision protection', () {
-    final suffix = OutputNamePlanner.suffixForDimensions(suffix: '_resized', width: 1200, height: 675);
+    final suffix = OutputNamePlanner.suffixForDimensions(
+      suffix: '_resized',
+      width: 1200,
+      height: 675,
+    );
     expect(
       OutputNamePlanner.outputPath(
         inputPath: '/pictures/Beck.avif',
@@ -40,12 +86,17 @@ void main() {
     );
   });
 
-  test('preserves a numeric filename suffix that exceeds the integer range', () {
-    expect(
-      OutputNamePlanner.outputPath(inputPath: '/pictures/photo (123456789012345678901234567890).png'),
-      '/pictures/photo (123456789012345678901234567890)_resized.jpg',
-    );
-  });
+  test(
+    'preserves a numeric filename suffix that exceeds the integer range',
+    () {
+      expect(
+        OutputNamePlanner.outputPath(
+          inputPath: '/pictures/photo (123456789012345678901234567890).png',
+        ),
+        '/pictures/photo (123456789012345678901234567890)_resized.jpg',
+      );
+    },
+  );
 
   test('advances the inherited sequence when the candidate is occupied', () {
     expect(
@@ -85,35 +136,48 @@ void main() {
     expect(OutputNamePlanner.isValidSuffix('_thumbnail 2'), isTrue);
   });
 
-  test('rejects path separators, NUL, controls, and Windows reserved characters', () {
-    for (final suffix in [
-      '/tmp',
-      r'..\thumb',
-      r'C:\tmp',
-      'thumb\u0000',
-      'thumb\u001f',
-      'thumb<2',
-      'thumb>2',
-      'thumb:2',
-      'thumb"2',
-      'thumb|2',
-      'thumb?2',
-      'thumb*2',
-    ]) {
-      expect(OutputNamePlanner.isValidSuffix(suffix), isFalse, reason: suffix);
-      expect(
-        () => OutputNamePlanner.outputPath(inputPath: '/pictures/photo.png', suffix: suffix),
-        throwsA(isA<ArgumentError>()),
-        reason: suffix,
-      );
-    }
-  });
+  test(
+    'rejects path separators, NUL, controls, and Windows reserved characters',
+    () {
+      for (final suffix in [
+        '/tmp',
+        r'..\thumb',
+        r'C:\tmp',
+        'thumb\u0000',
+        'thumb\u001f',
+        'thumb<2',
+        'thumb>2',
+        'thumb:2',
+        'thumb"2',
+        'thumb|2',
+        'thumb?2',
+        'thumb*2',
+      ]) {
+        expect(
+          OutputNamePlanner.isValidSuffix(suffix),
+          isFalse,
+          reason: suffix,
+        );
+        expect(
+          () => OutputNamePlanner.outputPath(
+            inputPath: '/pictures/photo.png',
+            suffix: suffix,
+          ),
+          throwsA(isA<ArgumentError>()),
+          reason: suffix,
+        );
+      }
+    },
+  );
 
-  test('rejects relative path components while preserving the empty suffix', () {
-    expect(OutputNamePlanner.isValidSuffix('.'), isFalse);
-    expect(OutputNamePlanner.isValidSuffix('..'), isFalse);
-    expect(OutputNamePlanner.isValidSuffix('..thumbnail'), isTrue);
-  });
+  test(
+    'rejects relative path components while preserving the empty suffix',
+    () {
+      expect(OutputNamePlanner.isValidSuffix('.'), isFalse);
+      expect(OutputNamePlanner.isValidSuffix('..'), isFalse);
+      expect(OutputNamePlanner.isValidSuffix('..thumbnail'), isTrue);
+    },
+  );
 
   test('keeps a valid suffix in the input directory', () {
     expect(
