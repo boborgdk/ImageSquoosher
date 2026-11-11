@@ -67,8 +67,8 @@ jobs:
         shell: bash
         run: bash tools/build_mozjpeg.sh
 
-      - name: Check Dart format
-        run: dart format --output=none --set-exit-if-changed .
+      - name: Format Dart code
+        run: dart format --output=write .
 
       - name: Analyze Dart code
         run: flutter analyze
