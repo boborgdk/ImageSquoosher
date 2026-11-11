@@ -361,11 +361,12 @@ class PipelineCompressionEngine implements ImageCompressionEngine {
     File stagedOutput,
   ) async {
     try {
-      await const MethodChannel('net.tsukumijima.image-squoosher/finder_sync')
-          .invokeMethod<void>('copySourceFileDatesToOutputFile', {
-            'sourcePath': sourceFile.path,
-            'outputPath': stagedOutput.path,
-          });
+      await const MethodChannel(
+        'net.tsukumijima.image-squoosher/finder_sync',
+      ).invokeMethod<void>('copySourceFileDatesToOutputFile', {
+        'sourcePath': sourceFile.path,
+        'outputPath': stagedOutput.path,
+      });
     } catch (error, stackTrace) {
       LoggingService.instance.warning(
         'Failed to copy source file dates.',
